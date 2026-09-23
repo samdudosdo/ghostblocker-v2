@@ -17,133 +17,485 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
+
     private TextView status;
     private TextView modeText;
     private int areaCount = 0;
 
-    @Override protected void onCreate(Bundle savedInstanceState) {
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try { areaCount = AreaRepository.load(this).size(); } catch (Exception ignored) {}
+
+        try {
+            areaCount = AreaRepository.load(this).size();
+        } catch (Exception ignored) {
+        }
+
         buildUi();
         requestNotificationPermission();
     }
 
-    @Override protected void onResume() {
+    @Override
+    protected void onResume() {
         super.onResume();
-        if (status != null) refreshUi();
+
+        if (status != null) {
+            refreshUi();
+        }
     }
 
     private void buildUi() {
+
+        int paddingHorizontal = dp(24);
+        int paddingTop = dp(32);
+        int paddingBottom = dp(28);
+
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(36, 44, 36, 36);
-        root.setBackgroundColor(Color.rgb(16,17,20));
+        root.setPadding(
+                paddingHorizontal,
+                paddingTop,
+                paddingHorizontal,
+                paddingBottom
+        );
+        root.setBackgroundColor(Color.rgb(16, 17, 20));
 
-        TextView title = text("GHOSTBLOCKER", 28, Color.WHITE);
+        // ============================================================
+        // TITLE
+        // ============================================================
+
+        TextView title = text(
+                "GHOSTBLOCKER",
+                28,
+                Color.WHITE
+        );
+
         title.setGravity(Gravity.CENTER);
-        root.addView(title, new LinearLayout.LayoutParams(-1, -2));
 
-        TextView subtitle = text("Fixed ghost spots · no ADB required", 14, Color.LTGRAY);
+        LinearLayout.LayoutParams titleParams =
+                new LinearLayout.LayoutParams(
+                        -1,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+
+        root.addView(title, titleParams);
+
+        // ============================================================
+        // SUBTITLE
+        // ============================================================
+
+        TextView subtitle = text(
+                "Fixed ghost spots · no ADB required",
+                14,
+                Color.LTGRAY
+        );
+
         subtitle.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams sp = new LinearLayout.LayoutParams(-1, -2);
-        sp.setMargins(0, 8, 0, 24);
-        root.addView(subtitle, sp);
 
-        modeText = text("", 18, Color.WHITE);
+        LinearLayout.LayoutParams subtitleParams =
+                new LinearLayout.LayoutParams(
+                        -1,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+
+        subtitleParams.setMargins(
+                0,
+                dp(8),
+                0,
+                dp(22)
+        );
+
+        root.addView(subtitle, subtitleParams);
+
+        // ============================================================
+        // CURRENT MODE
+        // ============================================================
+
+        modeText = text(
+                "",
+                18,
+                Color.WHITE
+        );
+
         modeText.setGravity(Gravity.CENTER);
-        root.addView(modeText, new LinearLayout.LayoutParams(-1, -2));
 
-        status = text("", 14, Color.LTGRAY);
+        LinearLayout.LayoutParams modeParams =
+                new LinearLayout.LayoutParams(
+                        -1,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+
+        root.addView(modeText, modeParams);
+
+        // ============================================================
+        // STATUS
+        // ============================================================
+
+        status = text(
+                "",
+                14,
+                Color.LTGRAY
+        );
+
         status.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams st = new LinearLayout.LayoutParams(-1, -2);
-        st.setMargins(0, 8, 0, 26);
-        root.addView(status, st);
 
-        Button transparent = button("ACTIVATE · TRANSPARENT");
-        transparent.setOnClickListener(v -> setMode(GhostState.Mode.TRANSPARENT));
-        root.addView(transparent, buttonParams());
+        LinearLayout.LayoutParams statusParams =
+                new LinearLayout.LayoutParams(
+                        -1,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
 
-        Button black = button("SHOW · BLACK");
-        black.setOnClickListener(v -> setMode(GhostState.Mode.BLACK));
-        root.addView(black, buttonParams());
+        statusParams.setMargins(
+                0,
+                dp(8),
+                0,
+                dp(22)
+        );
 
-        Button clear = button("CLEAR / OFF");
-        clear.setOnClickListener(v -> setMode(GhostState.Mode.OFF));
-        root.addView(clear, buttonParams());
+        root.addView(status, statusParams);
 
-        Button permission = button("OVERLAY PERMISSION");
-        permission.setOnClickListener(v -> openOverlaySettings());
-        root.addView(permission, buttonParams());
+        // ============================================================
+        // MENU 1 - TRANSPARENT
+        // ============================================================
 
-        TextView info = text("Fixed areas: " + areaCount + "\nCoordinates are bundled in the APK.\nNo area editor is included.", 13, Color.LTGRAY);
+        Button transparent =
+                button("ACTIVATE · TRANSPARENT");
+
+        transparent.setOnClickListener(
+                v -> setMode(GhostState.Mode.TRANSPARENT)
+        );
+
+        root.addView(
+                transparent,
+                buttonParams()
+        );
+
+        // ============================================================
+        // MENU 2 - BLACK
+        // ============================================================
+
+        Button black =
+                button("SHOW · BLACK");
+
+        black.setOnClickListener(
+                v -> setMode(GhostState.Mode.BLACK)
+        );
+
+        root.addView(
+                black,
+                buttonParams()
+        );
+
+        // ============================================================
+        // MENU 3 - OFF
+        // ============================================================
+
+        Button clear =
+                button("CLEAR / OFF");
+
+        clear.setOnClickListener(
+                v -> setMode(GhostState.Mode.OFF)
+        );
+
+        root.addView(
+                clear,
+                buttonParams()
+        );
+
+        // ============================================================
+        // MENU 4 - OVERLAY PERMISSION
+        // ============================================================
+
+        Button permission =
+                button("OVERLAY PERMISSION");
+
+        permission.setOnClickListener(
+                v -> openOverlaySettings()
+        );
+
+        root.addView(
+                permission,
+                buttonParams()
+        );
+
+        // ============================================================
+        // INFORMATION
+        // ============================================================
+
+        TextView info = text(
+                "Fixed areas: " + areaCount
+                        + "\nCoordinates are bundled in the APK."
+                        + "\nNo area editor is included.",
+                13,
+                Color.LTGRAY
+        );
+
         info.setGravity(Gravity.CENTER);
-        LinearLayout.LayoutParams ip = new LinearLayout.LayoutParams(-1, -2);
-        ip.setMargins(0, 24, 0, 0);
-        root.addView(info, ip);
 
-        ScrollView scroll = new ScrollView(this);
+        LinearLayout.LayoutParams infoParams =
+                new LinearLayout.LayoutParams(
+                        -1,
+                        LinearLayout.LayoutParams.WRAP_CONTENT
+                );
+
+        infoParams.setMargins(
+                0,
+                dp(20),
+                0,
+                0
+        );
+
+        root.addView(info, infoParams);
+
+        // ============================================================
+        // SCROLL VIEW
+        // ============================================================
+
+        ScrollView scroll =
+                new ScrollView(this);
+
+        scroll.setFillViewport(true);
         scroll.addView(root);
+
         setContentView(scroll);
+
         refreshUi();
     }
+
+    // ================================================================
+    // BUTTON LAYOUT
+    // ================================================================
 
     private LinearLayout.LayoutParams buttonParams() {
-        LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(-1, 58);
-        p.setMargins(0, 6, 0, 6);
-        return p;
+
+        int height = dp(64);
+        int margin = dp(6);
+
+        LinearLayout.LayoutParams params =
+                new LinearLayout.LayoutParams(
+                        -1,
+                        height
+                );
+
+        params.setMargins(
+                0,
+                margin,
+                0,
+                margin
+        );
+
+        return params;
     }
+
+    // ================================================================
+    // BUTTON CREATION
+    // ================================================================
 
     private Button button(String label) {
-        Button b = new Button(this);
-        b.setText(label);
-        b.setTextColor(Color.WHITE);
-        b.setAllCaps(false);
-        return b;
+
+        Button button =
+                new Button(this);
+
+        button.setText(label);
+        button.setTextColor(Color.WHITE);
+        button.setAllCaps(false);
+
+        button.setGravity(
+                Gravity.CENTER
+        );
+
+        button.setPadding(
+                dp(12),
+                0,
+                dp(12),
+                0
+        );
+
+        return button;
     }
 
-    private TextView text(String s, float size, int color) {
-        TextView t = new TextView(this);
-        t.setText(s); t.setTextSize(size); t.setTextColor(color);
-        return t;
+    // ================================================================
+    // TEXT CREATION
+    // ================================================================
+
+    private TextView text(
+            String value,
+            float size,
+            int color
+    ) {
+
+        TextView text =
+                new TextView(this);
+
+        text.setText(value);
+        text.setTextSize(size);
+        text.setTextColor(color);
+
+        return text;
     }
 
-    private void setMode(GhostState.Mode mode) {
+    // ================================================================
+    // DP CONVERSION
+    // ================================================================
+
+    private int dp(int value) {
+
+        return (int) (
+                value
+                        * getResources()
+                        .getDisplayMetrics()
+                        .density
+                        + 0.5f
+        );
+    }
+
+    // ================================================================
+    // SET GHOST MODE
+    // ================================================================
+
+    private void setMode(
+            GhostState.Mode mode
+    ) {
+
+        // ------------------------------------------------------------
+        // OFF
+        // ------------------------------------------------------------
+
         if (mode == GhostState.Mode.OFF) {
-            GhostState.set(this, mode);
-            stopService(new Intent(this, OverlayService.class));
+
+            GhostState.set(
+                    this,
+                    mode
+            );
+
+            stopService(
+                    new Intent(
+                            this,
+                            OverlayService.class
+                    )
+            );
+
             refreshUi();
+
             return;
         }
-        if (!Settings.canDrawOverlays(this)) { openOverlaySettings(); return; }
-        Intent i = new Intent(this, OverlayService.class)
-                .setAction(OverlayService.ACTION_SET_MODE)
-                .putExtra(OverlayService.EXTRA_MODE, mode.name());
-        startServiceCompat(i);
+
+        // ------------------------------------------------------------
+        // OVERLAY PERMISSION
+        // ------------------------------------------------------------
+
+        if (!Settings.canDrawOverlays(this)) {
+
+            openOverlaySettings();
+
+            return;
+        }
+
+        // ------------------------------------------------------------
+        // START OVERLAY SERVICE
+        // ------------------------------------------------------------
+
+        Intent intent =
+                new Intent(
+                        this,
+                        OverlayService.class
+                )
+                        .setAction(
+                                OverlayService.ACTION_SET_MODE
+                        )
+                        .putExtra(
+                                OverlayService.EXTRA_MODE,
+                                mode.name()
+                        );
+
+        startServiceCompat(intent);
+
         refreshUi();
     }
 
-    private void startServiceCompat(Intent i) {
-        if (Build.VERSION.SDK_INT >= 26) startForegroundService(i); else startService(i);
-    }
+    // ================================================================
+    // START SERVICE COMPATIBILITY
+    // ================================================================
 
-    private void openOverlaySettings() {
-        Intent i = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                Uri.parse("package:" + getPackageName()));
-        startActivity(i);
-    }
+    private void startServiceCompat(
+            Intent intent
+    ) {
 
-    private void requestNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
-                != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 700);
+        if (Build.VERSION.SDK_INT >= 26) {
+
+            startForegroundService(intent);
+
+        } else {
+
+            startService(intent);
         }
     }
 
+    // ================================================================
+    // OPEN OVERLAY PERMISSION
+    // ================================================================
+
+    private void openOverlaySettings() {
+
+        Intent intent =
+                new Intent(
+                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                        Uri.parse(
+                                "package:" + getPackageName()
+                        )
+                );
+
+        startActivity(intent);
+    }
+
+    // ================================================================
+    // NOTIFICATION PERMISSION
+    // ================================================================
+
+    private void requestNotificationPermission() {
+
+        if (Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission(
+                        Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED) {
+
+            requestPermissions(
+                    new String[]{
+                            Manifest.permission.POST_NOTIFICATIONS
+                    },
+                    700
+            );
+        }
+    }
+
+    // ================================================================
+    // REFRESH UI STATUS
+    // ================================================================
+
     private void refreshUi() {
-        if (modeText == null || status == null) return;
-        GhostState.Mode m = GhostState.get(this);
-        modeText.setText("MODE: " + m.name());
-        status.setText("Overlay permission: " + (Settings.canDrawOverlays(this) ? "GRANTED" : "NOT GRANTED")
-                + "\nFixed ghost areas: " + areaCount);
+
+        if (modeText == null
+                || status == null) {
+
+            return;
+        }
+
+        GhostState.Mode mode =
+                GhostState.get(this);
+
+        modeText.setText(
+                "MODE: " + mode.name()
+        );
+
+        status.setText(
+                "Overlay permission: "
+                        + (
+                        Settings.canDrawOverlays(this)
+                                ? "GRANTED"
+                                : "NOT GRANTED"
+                )
+                        + "\nFixed ghost areas: "
+                        + areaCount
+        );
     }
 }
