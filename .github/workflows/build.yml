@@ -18,61 +18,40 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout source
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Java
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-          cache: gradle
 
-      # 3. Android SDK
-      # IMPORTANT:
-      # Do NOT install the old "tools" package.
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
         with:
           packages: 'platform-tools'
 
-      # 4. Verify Android environment
-      - name: Show Android environment
-        shell: bash
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.7'
+
+      - name: Show environment
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
           java -version
-          adb version
-          sdkmanager --version
+          gradle --version
+          echo "ANDROID_HOME=$ANDROID_HOME"
 
-      # 5. Make Gradle wrapper executable
-      - name: Make Gradle executable
-        shell: bash
-        run: chmod +x ./gradlew
-
-      # 6. Validate Gradle
-      - name: Check Gradle
-        run: ./gradlew --version
-
-      # 7. Clean previous build
-      - name: Clean
-        run: ./gradlew --no-daemon clean
-
-      # 8. Build release APK
       - name: Build Release APK
-        run: ./gradlew --no-daemon assembleRelease
+        run: gradle --no-daemon clean assembleRelease
 
-      # 9. Show generated files
-      - name: List build output
+      - name: Show APK output
         shell: bash
         run: |
           echo "=== APK OUTPUT ==="
           find app/build/outputs -type f -name "*.apk" -print
 
-      # 10. Prepare release directory
       - name: Prepare APK
         shell: bash
         run: |
@@ -81,16 +60,14 @@ jobs:
           APK="app/build/outputs/apk/release/app-release.apk"
 
           if [ ! -f "$APK" ]; then
-            echo "ERROR: Release APK was not found!"
+            echo "ERROR: APK tidak ditemukan."
             exit 1
           fi
 
-          cp "$APK" "release/GhostBlocker.apk"
+          cp "$APK" release/GhostBlocker.apk
 
-          echo "APK prepared:"
           ls -lh release/GhostBlocker.apk
 
-      # 11. Upload APK as GitHub Actions artifact
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
