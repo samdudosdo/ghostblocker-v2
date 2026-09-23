@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">GhostBlocker</string>
+    <string name="notification_title">GhostBlocker active</string>
+    <string name="notification_text">Fixed ghost areas are protecting the screen.</string>
+</resources>
