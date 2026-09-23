@@ -4,9 +4,11 @@ on:
   push:
     branches:
       - main
+
   pull_request:
     branches:
       - main
+
   workflow_dispatch:
 
 permissions:
@@ -18,64 +20,199 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
+      # ============================================================
+      # 1. CHECKOUT SOURCE
+      # ============================================================
       - name: Checkout repository
         uses: actions/checkout@v4
 
+
+      # ============================================================
+      # 2. JAVA 17
+      # ============================================================
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
 
+
+      # ============================================================
+      # 3. ANDROID SDK
+      #
+      # DO NOT use:
+      #   tools
+      #
+      # The old "tools" SDK package is obsolete.
+      # ============================================================
       - name: Set up Android SDK
         uses: android-actions/setup-android@v4
         with:
           packages: 'platform-tools'
 
+
+      # ============================================================
+      # 4. GRADLE
+      #
+      # The Android Gradle Plugin in this project requires
+      # Gradle >= 8.11.1.
+      # ============================================================
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.11.1'
 
-      - name: Show environment
-        run: |
-          echo "=== Java ==="
-          java -version
 
-          echo "=== Gradle ==="
-          gradle --version
-
-          echo "=== Android SDK ==="
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          sdkmanager --version
-
-      - name: Build Release APK
-        run: |
-          gradle --no-daemon clean assembleRelease
-
-      - name: Show APK output
+      # ============================================================
+      # 5. SHOW BUILD ENVIRONMENT
+      # ============================================================
+      - name: Show build environment
         shell: bash
         run: |
-          echo "=== APK OUTPUT ==="
-          find app/build/outputs -type f -name "*.apk" -print
+          echo "========================================"
+          echo "JAVA"
+          echo "========================================"
+          java -version
 
+          echo ""
+          echo "========================================"
+          echo "GRADLE"
+          echo "========================================"
+          gradle --version
+
+          echo ""
+          echo "========================================"
+          echo "ANDROID SDK"
+          echo "========================================"
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+
+          echo ""
+          echo "========================================"
+          echo "SDK MANAGER"
+          echo "========================================"
+          sdkmanager --version
+
+
+      # ============================================================
+      # 6. SHOW PROJECT STRUCTURE
+      # ============================================================
+      - name: Show project structure
+        shell: bash
+        run: |
+          echo "========================================"
+          echo "PROJECT FILES"
+          echo "========================================"
+
+          find . -maxdepth 3 -type f \
+            ! -path './.git/*' \
+            | sort
+
+
+      # ============================================================
+      # 7. BUILD RELEASE APK
+      # ============================================================
+      - name: Build Release APK
+        shell: bash
+        run: |
+          set -e
+
+          echo "========================================"
+          echo "STARTING GRADLE BUILD"
+          echo "========================================"
+
+          gradle --no-daemon clean assembleRelease
+
+
+      # ============================================================
+      # 8. FIND GENERATED APK
+      #
+      # Do NOT assume the exact APK filename.
+      # ============================================================
+      - name: Find generated APK
+        shell: bash
+        run: |
+          echo "========================================"
+          echo "ALL APK FILES"
+          echo "========================================"
+
+          find . \
+            -type f \
+            -name "*.apk" \
+            -not -path './.git/*' \
+            -print
+
+          echo ""
+          echo "========================================"
+          echo "APP BUILD OUTPUT"
+          echo "========================================"
+
+          if [ -d "app/build/outputs" ]; then
+            find app/build/outputs \
+              -maxdepth 6 \
+              -type f \
+              -print
+          else
+            echo "WARNING: app/build/outputs tidak ditemukan."
+          fi
+
+
+      # ============================================================
+      # 9. PREPARE FINAL APK
+      # ============================================================
       - name: Prepare APK
         shell: bash
         run: |
+          set -e
+
+          echo "========================================"
+          echo "PREPARING RELEASE APK"
+          echo "========================================"
+
           mkdir -p release
 
-          APK="app/build/outputs/apk/release/app-release.apk"
+          APK=$(find app/build/outputs/apk \
+            -type f \
+            -name "*.apk" \
+            | head -n 1)
 
-          if [ ! -f "$APK" ]; then
-            echo "ERROR: Release APK tidak ditemukan."
+          if [ -z "$APK" ]; then
+            echo ""
+            echo "ERROR: Tidak ada APK yang dihasilkan."
+            echo ""
+
+            echo "Isi app/build:"
+            find app/build \
+              -maxdepth 8 \
+              -type f \
+              -print \
+              2>/dev/null || true
+
             exit 1
           fi
 
+          echo ""
+          echo "APK ditemukan:"
+          echo "$APK"
+
           cp "$APK" "release/GhostBlocker.apk"
 
-          echo "=== FINAL APK ==="
+          echo ""
+          echo "========================================"
+          echo "FINAL APK"
+          echo "========================================"
+
           ls -lh release/GhostBlocker.apk
 
+          echo ""
+          echo "SHA256:"
+          sha256sum release/GhostBlocker.apk
+
+
+      # ============================================================
+      # 10. UPLOAD APK
+      # ============================================================
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
